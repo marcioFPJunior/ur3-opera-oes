@@ -8,6 +8,7 @@ export interface OperationRecord {
   quantity: string;
   nf: string;
   operation: string;
+  category: string;
   photoUrl?: string;
 }
 
@@ -18,11 +19,15 @@ export const PRODUCTS = [
   "Silane 1524", "Solvesso 100", "Solvesso 150", "Solvesso 200", "Solvesso 1500"
 ];
 
-export const OPERATIONS = [
+export const SOLVENTES = ["Hexano", "Xileno", "Aguarrás"];
+
+export const RECEBIMENTO_TYPES = [
   "Recebimento UR3",
-  "Recebimento tanque",
-  "Carregamento",
-  "Troca de bota"
+  "Recebimento tanque"
+];
+
+export const EXPEDIÇÃO_TYPES = [
+  "Carregamento de caminhão"
 ];
 
 interface AppContextType {
@@ -30,6 +35,8 @@ interface AppContextType {
   setCurrentUser: (user: string | null) => void;
   records: OperationRecord[];
   addRecord: (record: Omit<OperationRecord, 'id' | 'date'>) => void;
+  getRecordsByCategory: (category: string) => OperationRecord[];
+  getTodayCount: () => number;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -65,8 +72,17 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setRecords(prev => [newRecord, ...prev]);
   };
 
+  const getRecordsByCategory = (category: string) => {
+    return records.filter(r => r.category === category);
+  };
+
+  const getTodayCount = () => {
+    const today = new Date().toISOString().split('T')[0];
+    return records.filter(r => r.date.startsWith(today)).length;
+  };
+
   return (
-    <AppContext.Provider value={{ currentUser, setCurrentUser, records, addRecord }}>
+    <AppContext.Provider value={{ currentUser, setCurrentUser, records, addRecord, getRecordsByCategory, getTodayCount }}>
       {children}
     </AppContext.Provider>
   );

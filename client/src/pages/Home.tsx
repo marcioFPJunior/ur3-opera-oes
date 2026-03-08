@@ -1,15 +1,12 @@
 import { useLocation } from "wouter";
 import { useAppContext } from "@/lib/store";
-import { PlusCircle, Camera, ClipboardList } from "lucide-react";
-import { format } from "date-fns";
+import { TrendingUp, Truck, Droplet } from "lucide-react";
 
 export default function Home() {
   const [, setLocation] = useLocation();
-  const { records, currentUser } = useAppContext();
+  const { currentUser, getTodayCount } = useAppContext();
 
-  // Count today's operations
-  const today = new Date().toISOString().split('T')[0];
-  const todayCount = records.filter(r => r.date.startsWith(today)).length;
+  const todayCount = getTodayCount();
 
   return (
     <div className="p-4 space-y-6">
@@ -26,27 +23,27 @@ export default function Home() {
 
       <div className="grid gap-4 mt-8">
         <button
-          onClick={() => setLocation("/novo")}
+          onClick={() => setLocation("/recebimento")}
           className="flex flex-col items-center justify-center gap-3 bg-primary text-primary-foreground p-8 rounded-3xl shadow-lg active:scale-95 transition-transform"
         >
-          <PlusCircle size={48} />
-          <span className="text-xl font-bold">Novo Registro</span>
+          <TrendingUp size={48} />
+          <span className="text-xl font-bold">Recebimento</span>
         </button>
 
         <button
-          onClick={() => setLocation("/novo?camera=true")}
-          className="flex flex-col items-center justify-center gap-3 bg-secondary text-secondary-foreground p-6 rounded-3xl shadow-sm border border-border active:scale-95 transition-transform"
+          onClick={() => setLocation("/expedicao")}
+          className="flex flex-col items-center justify-center gap-3 bg-primary text-primary-foreground p-8 rounded-3xl shadow-lg active:scale-95 transition-transform"
         >
-          <Camera size={36} className="text-primary" />
-          <span className="text-lg font-bold">Registrar por Foto</span>
+          <Truck size={48} />
+          <span className="text-xl font-bold">Expedição</span>
         </button>
 
         <button
-          onClick={() => setLocation("/historico")}
-          className="flex flex-col items-center justify-center gap-3 bg-card text-card-foreground p-6 rounded-3xl shadow-sm border border-border active:scale-95 transition-transform mt-4"
+          onClick={() => setLocation("/transbordo")}
+          className="flex flex-col items-center justify-center gap-3 bg-primary text-primary-foreground p-8 rounded-3xl shadow-lg active:scale-95 transition-transform"
         >
-          <ClipboardList size={36} className="text-muted-foreground" />
-          <span className="text-lg font-bold">Histórico</span>
+          <Droplet size={48} />
+          <span className="text-xl font-bold">Transbordo</span>
         </button>
       </div>
     </div>
