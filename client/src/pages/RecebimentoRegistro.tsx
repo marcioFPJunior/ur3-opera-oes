@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef } from "react";
 import { useLocation } from "wouter";
 import { useAppContext, PRODUCTS } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
@@ -9,23 +9,24 @@ import { Label } from "@/components/ui/label";
 export default function RecebimentoRegistro() {
   const [, setLocation] = useLocation();
   const searchParams = new URLSearchParams(window.location.search);
-  const type = searchParams.get('type') || 'ur3';
-  
+  const type = searchParams.get("type") || "ur3";
+
   const { addRecord, currentUser } = useAppContext();
   const { toast } = useToast();
-  
+
   const [step, setStep] = useState(1);
   const [search, setSearch] = useState("");
-  
+
   const [product, setProduct] = useState("");
   const [quantity, setQuantity] = useState("");
   const [nf, setNf] = useState("");
+  const [observacao, setObservacao] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredProducts = PRODUCTS.filter(p => 
-    p.toLowerCase().includes(search.toLowerCase())
+  const filteredProducts = PRODUCTS.filter((p) =>
+    p.toLowerCase().includes(search.toLowerCase()),
   );
 
   const handleCapture = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -41,12 +42,13 @@ export default function RecebimentoRegistro() {
       toast({
         title: "Campos obrigatórios",
         description: "Preencha Produto e Quantidade.",
-        variant: "destructive"
+        variant: "destructive",
       });
       return;
     }
 
-    const operationType = type === 'ur3' ? 'Recebimento UR3' : 'Recebimento tanque';
+    const operationType =
+      type === "ur3" ? "Recebimento UR3" : "Recebimento tanque";
 
     addRecord({
       user: currentUser!,
@@ -55,14 +57,14 @@ export default function RecebimentoRegistro() {
       nf,
       operation: operationType,
       category: "Recebimento",
-      photoUrl: photo || undefined
+      photoUrl: photo || undefined,
     });
 
     toast({
       title: "Sucesso",
       description: "Registro salvo com sucesso!",
     });
-    
+
     setLocation("/recebimento");
   };
 
@@ -70,8 +72,12 @@ export default function RecebimentoRegistro() {
     <div className="flex flex-col h-full bg-muted/30">
       <div className="bg-card px-4 py-3 border-b">
         <div className="flex gap-2">
-          <div className={`h-2 flex-1 rounded-full ${step >= 1 ? 'bg-primary' : 'bg-muted'}`} />
-          <div className={`h-2 flex-1 rounded-full ${step >= 2 ? 'bg-primary' : 'bg-muted'}`} />
+          <div
+            className={`h-2 flex-1 rounded-full ${step >= 1 ? "bg-primary" : "bg-muted"}`}
+          />
+          <div
+            className={`h-2 flex-1 rounded-full ${step >= 2 ? "bg-primary" : "bg-muted"}`}
+          />
         </div>
       </div>
 
@@ -79,22 +85,29 @@ export default function RecebimentoRegistro() {
         {step === 1 && (
           <div className="space-y-6 flex-1 flex flex-col">
             <div>
-              <h2 className="text-2xl font-bold mb-2">1. Selecione o Produto</h2>
-              <p className="text-muted-foreground text-sm">Pesquise ou selecione na lista</p>
+              <h2 className="text-2xl font-bold mb-2">
+                1. Selecione o Produto
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                Pesquise ou selecione na lista
+              </p>
             </div>
-            
+
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
-              <Input 
-                type="text" 
-                placeholder="Buscar produto..." 
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
+              <Input
+                type="text"
+                placeholder="Buscar produto..."
                 className="pl-10 h-14 text-lg rounded-xl"
                 value={search}
-                onChange={e => setSearch(e.target.value)}
+                onChange={(e) => setSearch(e.target.value)}
               />
               {search && (
-                <button 
-                  onClick={() => setSearch('')}
+                <button
+                  onClick={() => setSearch("")}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground p-1"
                 >
                   <X size={20} />
@@ -104,7 +117,7 @@ export default function RecebimentoRegistro() {
 
             <div className="flex-1 overflow-y-auto bg-card rounded-2xl border shadow-sm">
               <div className="divide-y">
-                {filteredProducts.map(p => (
+                {filteredProducts.map((p) => (
                   <button
                     key={p}
                     onClick={() => {
@@ -130,54 +143,78 @@ export default function RecebimentoRegistro() {
         {step === 2 && (
           <div className="space-y-6 flex-1">
             <div>
-              <h2 className="text-2xl font-bold mb-2">2. Detalhes ({product})</h2>
-              <p className="text-muted-foreground text-sm">Informe a quantidade e nota fiscal</p>
+              <h2 className="text-2xl font-bold mb-2">
+                2. Detalhes ({product})
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                Informe a quantidade e nota fiscal
+              </p>
             </div>
 
             <div className="space-y-4 bg-card p-5 rounded-2xl border shadow-sm">
               <div className="space-y-2">
-                <Label className="text-base text-muted-foreground">Quantidade (kg) <span className="text-destructive">*</span></Label>
-                <Input 
-                  type="number" 
+                <Label className="text-base text-muted-foreground">
+                  Quantidade (kg) <span className="text-destructive">*</span>
+                </Label>
+                <Input
+                  type="number"
                   inputMode="numeric"
-                  placeholder="Ex: 1500" 
+                  placeholder="Ex: 1500"
                   className="h-16 text-2xl font-bold rounded-xl"
                   value={quantity}
-                  onChange={e => setQuantity(e.target.value)}
+                  onChange={(e) => setQuantity(e.target.value)}
                   autoFocus
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-base text-muted-foreground">
+                  Observação / Ocorrência
+                </Label>
+
+                <textarea
+                  value={observacao}
+                  onChange={(e) => setObservacao(e.target.value)}
+                  placeholder="Ex: aguardando LCQ ou bomba parada"
+                  className="w-full border-2 border-border rounded-xl p-3 focus:outline-none focus:border-primary"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label className="text-base text-muted-foreground">Nota Fiscal (NF)</Label>
+                <Label className="text-base text-muted-foreground">
+                  Nota Fiscal (NF)
+                </Label>
                 <div className="flex gap-2">
-                  <Input 
-                    type="text" 
-                    placeholder="Número da NF" 
+                  <Input
+                    type="text"
+                    placeholder="Número da NF"
                     className="h-16 text-xl rounded-xl flex-1"
                     value={nf}
-                    onChange={e => setNf(e.target.value)}
+                    onChange={(e) => setNf(e.target.value)}
                   />
-                  <input 
-                    type="file" 
-                    accept="image/*" 
-                    capture="environment" 
-                    className="hidden" 
+                  <input
+                    type="file"
+                    accept="image/*"
+                    capture="environment"
+                    className="hidden"
                     ref={fileInputRef}
                     onChange={handleCapture}
                   />
-                  <button 
+                  <button
                     onClick={() => fileInputRef.current?.click()}
                     className={`h-16 w-16 flex items-center justify-center rounded-xl border-2 transition-colors
-                      ${photo ? 'bg-primary/10 border-primary text-primary' : 'bg-muted border-border text-muted-foreground hover:bg-muted/80'}`}
+                      ${photo ? "bg-primary/10 border-primary text-primary" : "bg-muted border-border text-muted-foreground hover:bg-muted/80"}`}
                   >
                     <Camera size={28} />
                   </button>
                 </div>
                 {photo && (
                   <div className="mt-2 relative rounded-xl overflow-hidden h-32 border">
-                    <img src={photo} alt="NF capture" className="w-full h-full object-cover" />
-                    <button 
+                    <img
+                      src={photo}
+                      alt="NF capture"
+                      className="w-full h-full object-cover"
+                    />
+                    <button
                       onClick={() => setPhoto(null)}
                       className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full"
                     >
@@ -189,13 +226,13 @@ export default function RecebimentoRegistro() {
             </div>
 
             <div className="flex gap-3 pt-4 pb-8">
-              <button 
+              <button
                 onClick={() => setStep(1)}
                 className="flex-1 py-4 rounded-xl border-2 font-bold text-lg text-muted-foreground active:bg-muted"
               >
                 Voltar
               </button>
-              <button 
+              <button
                 onClick={handleSave}
                 className="flex-[2] py-4 rounded-xl bg-primary text-primary-foreground font-bold text-xl active:scale-95 transition-transform disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
               >
