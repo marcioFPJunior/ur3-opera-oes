@@ -81,9 +81,7 @@ export default function RecebimentoRegistro() {
           <div className="space-y-6 flex-1 flex flex-col">
             <div>
               <h2 className="text-2xl font-bold mb-2">1. Selecione o Produto</h2>
-              <p className="text-muted-foreground text-sm">
-                Pesquise ou selecione na lista
-              </p>
+              <p className="text-muted-foreground text-sm">Pesquise ou selecione na lista</p>
             </div>
 
             <div className="relative">
@@ -134,12 +132,10 @@ export default function RecebimentoRegistro() {
           <div className="space-y-6 flex-1">
             <div>
               <h2 className="text-2xl font-bold mb-2">2. Detalhes ({product})</h2>
-              <p className="text-muted-foreground text-sm">
-                Informe a quantidade, nota fiscal e observações
-              </p>
+              <p className="text-muted-foreground text-sm">Informe quantidade, observações e nota fiscal</p>
             </div>
 
-            <div className="space-y-4 bg-card p-5 rounded-2xl border shadow-sm">
+            <div className="space-y-4 bg-card p-5 rounded-2xl border shadow-sm flex-1 overflow-y-auto">
               <div className="space-y-2">
                 <Label className="text-base text-muted-foreground">
                   Quantidade (kg) <span className="text-destructive">*</span>
@@ -148,7 +144,7 @@ export default function RecebimentoRegistro() {
                   type="number"
                   inputMode="numeric"
                   placeholder="Ex: 1500"
-                  className="h-16 text-2xl font-bold rounded-xl"
+                  className="h-14 text-xl font-bold rounded-xl"
                   value={quantity}
                   onChange={(e) => setQuantity(e.target.value)}
                   autoFocus
@@ -156,9 +152,7 @@ export default function RecebimentoRegistro() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-base text-muted-foreground">
-                  Observação / Ocorrência
-                </Label>
+                <Label className="text-base text-muted-foreground">Observação / Ocorrência</Label>
                 <textarea
                   value={observacao}
                   onChange={(e) => setObservacao(e.target.value)}
@@ -169,14 +163,12 @@ export default function RecebimentoRegistro() {
               </div>
 
               <div className="space-y-2">
-                <Label className="text-base text-muted-foreground">
-                  Nota Fiscal (NF)
-                </Label>
+                <Label className="text-base text-muted-foreground">Nota Fiscal (NF)</Label>
                 <div className="flex gap-2">
                   <Input
                     type="text"
                     placeholder="Número da NF"
-                    className="h-16 text-xl rounded-xl flex-1"
+                    className="h-14 text-lg rounded-xl flex-1"
                     value={nf}
                     onChange={(e) => setNf(e.target.value)}
                   />
@@ -190,19 +182,15 @@ export default function RecebimentoRegistro() {
                   />
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className={`h-16 w-16 flex items-center justify-center rounded-xl border-2 transition-colors
+                    className={`h-14 w-14 flex items-center justify-center rounded-xl border-2 transition-colors
                       ${photo ? "bg-primary/10 border-primary text-primary" : "bg-muted border-border text-muted-foreground hover:bg-muted/80"}`}
                   >
-                    <Camera size={28} />
+                    <Camera size={24} />
                   </button>
                 </div>
                 {photo && (
                   <div className="mt-2 relative rounded-xl overflow-hidden h-32 border">
-                    <img
-                      src={photo}
-                      alt="NF capture"
-                      className="w-full h-full object-cover"
-                    />
+                    <img src={photo} alt="NF capture" className="w-full h-full object-cover" />
                     <button
                       onClick={() => setPhoto(null)}
                       className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full"
@@ -223,7 +211,7 @@ export default function RecebimentoRegistro() {
               </button>
               <button
                 onClick={handleSave}
-                className="flex-[2] py-4 rounded-xl bg-primary text-primary-foreground font-bold text-xl active:scale-95 transition-transform disabled:opacity-50 flex items-center justify-center gap-2 shadow-lg"
+                className="flex-[2] py-4 rounded-xl bg-primary text-primary-foreground font-bold text-xl active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-lg"
               >
                 <CheckCircle2 /> Salvar
               </button>
