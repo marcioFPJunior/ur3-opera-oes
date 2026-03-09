@@ -1,35 +1,44 @@
-import { type User, type InsertUser } from "@shared/schema";
-import { randomUUID } from "crypto";
+import { db } from "./db";
+import { operations } from "@shared/schema";
+import { type Operation, type InsertOperation } from "@shared/schema";
+import { eq, desc } from "drizzle-orm";
 
 export interface IStorage {
-  getUser(id: string): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  addOperation(op: InsertOperation): Promise<Operation>;
+  getOperations(): Promise<Operation[]>;
+  getOperationsByCategory(category: string): Promise<Operation[]>;
+  deleteOperation(id: string): Promise<void>;
+  clearAllOperations(): Promise<void>;
 }
 
-export class MemStorage implements IStorage {
-  private users: Map<string, User>;
-
-  constructor() {
-    this.users = new Map();
+export class DatabaseStorage implements IStorage {
+  async addOperation(op: InsertOperation): Promise<Operation> {
+    const result = await db.insert(operations).values(op).returning();
+    return result[0];
   }
 
-  async getUser(id: string): Promise<User | undefined> {
-    return this.users.get(id);
+  async getOperations(): Promise<Operation[]> {
+    return db
+      .select()
+      .from(operations)
+      .orderBy(desc(operations.date));
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(
-      (user) => user.username === username,
-    );
+  async getOperationsByCategory(category: string): Promise<Operation[]> {
+    return db
+      .select()
+      .from(operations)
+      .where(eq(operations.category, category))
+      .orderBy(desc(operations.date));
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const id = randomUUID();
-    const user: User = { ...insertUser, id };
-    this.users.set(id, user);
-    return user;
+  async deleteOperation(id: string): Promise<void> {
+    await db.delete(operations).where(eq(operations.id, id));
+  }
+
+  async clearAllOperations(): Promise<void> {
+    await db.delete(operations);
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();

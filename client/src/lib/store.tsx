@@ -49,91 +49,71 @@ interface AppContextType {
   currentUser: string | null;
   setCurrentUser: (user: string | null) => void;
   records: OperationRecord[];
-  addRecord: (record: Omit<OperationRecord, "id" | "date">) => Promise<void>;
-  deleteRecord: (id: string) => Promise<void>;
-  clearAllRecords: () => Promise<void>;
+  addRecord: (record: Omit<OperationRecord, "id" | "date">) => void;
+  deleteRecord: (id: string) => void;
+  clearAllRecords: () => void;
   getRecordsByCategory: (category: string) => OperationRecord[];
   getTodayCount: () => number;
-  refreshRecords: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
+
+const STORAGE_KEY = "ur3_records";
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
     return localStorage.getItem("ur3_user");
   });
 
-  const [records, setRecords] = useState<OperationRecord[]>([]);
+  const [records, setRecords] = useState<OperationRecord[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved ? JSON.parse(saved) : [];
+  });
 
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem("ur3_user", currentUser);
-      refreshRecords();
     } else {
       localStorage.removeItem("ur3_user");
     }
   }, [currentUser]);
 
-  // Sincroniza a cada 5 segundos
   useEffect(() => {
-    const interval = setInterval(() => {
-      refreshRecords();
-    }, 5000);
-    return () => clearInterval(interval);
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+  }, [records]);
+
+  // Sincroniza a cada 2 segundos com outros abas/celulares via storage
+  useEffect(() => {
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === STORAGE_KEY && e.newValue) {
+        try {
+          const updated = JSON.parse(e.newValue);
+          setRecords(updated);
+        } catch (error) {
+          console.error("Erro ao sincronizar registros:", error);
+        }
+      }
+    };
+
+    window.addEventListener("storage", handleStorageChange);
+    return () => window.removeEventListener("storage", handleStorageChange);
   }, []);
 
-  const refreshRecords = async () => {
-    try {
-      const response = await fetch("/api/operations");
-      if (response.ok) {
-        const data = await response.json();
-        setRecords(data);
-      }
-    } catch (error) {
-      console.error("Erro ao carregar registros:", error);
-    }
+  const addRecord = (record: Omit<OperationRecord, "id" | "date">) => {
+    const newRecord: OperationRecord = {
+      ...record,
+      id: crypto.randomUUID(),
+      date: new Date().toISOString(),
+    };
+    setRecords((prev) => [newRecord, ...prev]);
   };
 
-  const addRecord = async (record: Omit<OperationRecord, "id" | "date">) => {
-    try {
-      const response = await fetch("/api/operations", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(record),
-      });
-      if (!response.ok) throw new Error("Erro ao salvar");
-      await refreshRecords();
-    } catch (error) {
-      console.error("Erro ao adicionar registro:", error);
-      throw error;
-    }
+  const deleteRecord = (id: string) => {
+    setRecords((prev) => prev.filter((r) => r.id !== id));
   };
 
-  const deleteRecord = async (id: string) => {
-    try {
-      const response = await fetch(`/api/operations/${id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error("Erro ao deletar");
-      await refreshRecords();
-    } catch (error) {
-      console.error("Erro ao deletar registro:", error);
-      throw error;
-    }
-  };
-
-  const clearAllRecords = async () => {
-    try {
-      const response = await fetch("/api/operations", {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error("Erro ao limpar");
-      await refreshRecords();
-    } catch (error) {
-      console.error("Erro ao limpar registros:", error);
-      throw error;
-    }
+  const clearAllRecords = () => {
+    setRecords([]);
   };
 
   const getRecordsByCategory = (category: string) => {
@@ -156,7 +136,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         clearAllRecords,
         getRecordsByCategory,
         getTodayCount,
-        refreshRecords,
       }}
     >
       {children}
