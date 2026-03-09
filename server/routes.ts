@@ -35,6 +35,15 @@ export async function registerRoutes(
     }
   });
 
+  app.patch("/api/operations/:id", async (req, res) => {
+    try {
+      const updated = await storage.updateOperation(req.params.id, req.body);
+      res.json(updated);
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
+    }
+  });
+
   app.delete("/api/operations/:id", async (req, res) => {
     try {
       await storage.deleteOperation(req.params.id);

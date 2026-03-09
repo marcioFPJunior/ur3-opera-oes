@@ -23,6 +23,7 @@ export const operations = pgTable("operations", {
   category: text("category").notNull(),
   observacao: text("observacao"),
   photoUrl: text("photoUrl"),
+  statusLcq: text("status_lcq"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({

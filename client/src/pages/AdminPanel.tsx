@@ -1,14 +1,32 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
-import { useAppContext, RECEBIMENTO_TYPES, SOLVENTES, RECEBIMENTO_PRODUCTS, PRODUCTS } from "@/lib/store";
+import { useAppContext, RECEBIMENTO_TYPES, SOLVENTES, RECEBIMENTO_PRODUCTS, PRODUCTS, LCQ_STATUSES } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2, RotateCcw, Plus, X } from "lucide-react";
+import { Trash2, RotateCcw, Plus, X, FlaskConical } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
+function LcqBadge({ status }: { status?: string }) {
+  if (!status) return null;
+
+  let colors = "bg-gray-100 text-gray-600";
+  if (status === "Aguardando LCQ") {
+    colors = "bg-yellow-50 text-yellow-700";
+  } else if (status === "Liberado LCQ") {
+    colors = "bg-green-50 text-green-700";
+  }
+
+  return (
+    <span className={`inline-flex items-center gap-1 text-[10px] font-bold px-1.5 py-0.5 rounded ${colors}`}>
+      <FlaskConical size={10} />
+      {status}
+    </span>
+  );
+}
+
 export default function AdminPanel() {
   const [, setLocation] = useLocation();
-  const { records, deleteRecord, clearAllRecords, addRecord, currentUser } =
+  const { records, deleteRecord, clearAllRecords, addRecord, updateRecord, currentUser } =
     useAppContext();
   const { toast } = useToast();
 
@@ -23,6 +41,7 @@ export default function AdminPanel() {
     operation: "",
     observacao: "",
     category: "Recebimento",
+    statusLcq: "Aguardando LCQ",
   });
 
   const filteredRecords = records.filter(
@@ -93,6 +112,7 @@ export default function AdminPanel() {
         operation: newRecord.operation || "Recebimento UR3",
         category: newRecord.category,
         observacao: newRecord.observacao,
+        statusLcq: newRecord.category === "Recebimento" ? newRecord.statusLcq : undefined,
       });
 
       toast({
@@ -109,6 +129,7 @@ export default function AdminPanel() {
         operation: "",
         observacao: "",
         category: "Recebimento",
+        statusLcq: "Aguardando LCQ",
       });
       setShowAddForm(false);
     } catch (error) {
@@ -120,10 +141,26 @@ export default function AdminPanel() {
     }
   };
 
+  const handleQuickLcqUpdate = async (id: string, newStatus: string) => {
+    try {
+      await updateRecord(id, { statusLcq: newStatus });
+      toast({
+        title: "Status atualizado",
+        description: `LCQ alterado para "${newStatus}".`,
+      });
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível atualizar.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <div className="p-4 space-y-6">
       <div className="bg-yellow-500/10 border-2 border-yellow-500 rounded-2xl p-4">
-        <h2 className="text-2xl font-bold text-yellow-900 mb-2">
+        <h2 className="text-2xl font-bold text-yellow-900 mb-2" data-testid="text-admin-title">
           Painel de Administração
         </h2>
         <p className="text-yellow-800 text-sm">
@@ -133,6 +170,7 @@ export default function AdminPanel() {
 
       <div className="flex gap-2">
         <Input
+          data-testid="input-admin-search"
           type="text"
           placeholder="Buscar por motorista, placa ou produto..."
           className="h-12 text-lg rounded-xl"
@@ -144,6 +182,7 @@ export default function AdminPanel() {
       {!showAddForm && (
         <div className="flex gap-2">
           <button
+            data-testid="button-add-record"
             onClick={() => setShowAddForm(true)}
             className="flex-1 flex items-center justify-center gap-2 bg-blue-500 text-white p-4 rounded-xl font-bold active:scale-95"
           >
@@ -151,6 +190,7 @@ export default function AdminPanel() {
             Adicionar Registro
           </button>
           <button
+            data-testid="button-clear-all"
             onClick={handleClearAll}
             className="flex-1 flex items-center justify-center gap-2 bg-red-500 text-white p-4 rounded-xl font-bold active:scale-95"
           >
@@ -267,6 +307,23 @@ export default function AdminPanel() {
           </div>
 
           <div>
+            <Label className="text-sm">Status LCQ</Label>
+            <select
+              value={newRecord.statusLcq}
+              onChange={(e) =>
+                setNewRecord({ ...newRecord, statusLcq: e.target.value })
+              }
+              className="w-full h-10 px-3 rounded-lg border-2 border-border text-sm"
+            >
+              {LCQ_STATUSES.map((status) => (
+                <option key={status} value={status}>
+                  {status}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div>
             <Label className="text-sm">Observação</Label>
             <textarea
               placeholder="Observações adicionais"
@@ -297,10 +354,14 @@ export default function AdminPanel() {
           filteredRecords.map((record) => (
             <div
               key={record.id}
+              data-testid={`admin-card-${record.id}`}
               className="bg-card p-4 rounded-xl border flex justify-between items-start gap-4"
             >
-              <div className="flex-1 text-sm">
-                <p className="font-bold">{record.product}</p>
+              <div className="flex-1 text-sm space-y-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <p className="font-bold">{record.product}</p>
+                  <LcqBadge status={record.statusLcq} />
+                </div>
                 <p className="text-muted-foreground text-xs">
                   {record.motorista || "N/A"} • {record.placa || "N/A"}
                 </p>
@@ -310,8 +371,28 @@ export default function AdminPanel() {
                 <p className="text-muted-foreground text-xs">
                   {new Date(record.date).toLocaleString("pt-BR")}
                 </p>
+                {record.statusLcq && record.statusLcq !== "Não se aplica" && (
+                  <div className="flex gap-1 pt-1">
+                    {LCQ_STATUSES.filter((s) => s !== record.statusLcq).map((status) => (
+                      <button
+                        key={status}
+                        onClick={() => handleQuickLcqUpdate(record.id, status)}
+                        className={`text-[10px] font-bold px-2 py-1 rounded border active:scale-95 ${
+                          status === "Liberado LCQ"
+                            ? "border-green-400 text-green-700 bg-green-50"
+                            : status === "Aguardando LCQ"
+                              ? "border-yellow-400 text-yellow-700 bg-yellow-50"
+                              : "border-gray-300 text-gray-600 bg-gray-50"
+                        }`}
+                      >
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <button
+                data-testid={`button-delete-${record.id}`}
                 onClick={() => handleDeleteRecord(record.id)}
                 className="p-2 hover:bg-red-500/20 text-red-600 rounded-lg active:scale-95"
               >

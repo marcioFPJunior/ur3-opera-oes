@@ -5,6 +5,7 @@ import {
   RECEBIMENTO_TYPES,
   RECEBIMENTO_PRODUCTS,
   SOLVENTES,
+  LCQ_STATUSES,
 } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Search, X, CheckCircle2, ChevronRight } from "lucide-react";
@@ -27,6 +28,7 @@ export default function RecebimentoRegistro() {
   const [observacao, setObservacao] = useState("");
   const [nf, setNf] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
+  const [statusLcq, setStatusLcq] = useState("Aguardando LCQ");
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -70,6 +72,7 @@ export default function RecebimentoRegistro() {
         operation: recebimentoType,
         category: "Recebimento",
         photoUrl: photo || undefined,
+        statusLcq,
       });
 
       toast({
@@ -114,7 +117,6 @@ export default function RecebimentoRegistro() {
       </div>
 
       <div className="p-4 flex-1 flex flex-col max-w-md mx-auto w-full overflow-y-auto">
-        {/* STEP 1: Motorista */}
         {step === 1 && (
           <div className="space-y-6 flex-1 flex flex-col">
             <div>
@@ -130,6 +132,7 @@ export default function RecebimentoRegistro() {
                   Motorista <span className="text-destructive">*</span>
                 </Label>
                 <Input
+                  data-testid="input-motorista"
                   type="text"
                   placeholder="Ex: João Silva"
                   className="h-14 text-lg rounded-xl"
@@ -144,6 +147,7 @@ export default function RecebimentoRegistro() {
                   Placa do Caminhão <span className="text-destructive">*</span>
                 </Label>
                 <Input
+                  data-testid="input-placa"
                   type="text"
                   placeholder="Ex: ABC-1234"
                   className="h-14 text-lg rounded-xl uppercase"
@@ -157,6 +161,7 @@ export default function RecebimentoRegistro() {
                   Pedido ou Nota Fiscal
                 </Label>
                 <Input
+                  data-testid="input-pedido"
                   type="text"
                   placeholder="Ex: 45821"
                   className="h-14 text-lg rounded-xl"
@@ -167,6 +172,7 @@ export default function RecebimentoRegistro() {
             </div>
 
             <button
+              data-testid="button-next-step1"
               onClick={() => {
                 if (!motorista || !placa) {
                   toast({
@@ -185,7 +191,6 @@ export default function RecebimentoRegistro() {
           </div>
         )}
 
-        {/* STEP 2: Tipo de Recebimento */}
         {step === 2 && (
           <div className="space-y-6 flex-1 flex flex-col">
             <div>
@@ -199,6 +204,7 @@ export default function RecebimentoRegistro() {
               {RECEBIMENTO_TYPES.map((type) => (
                 <button
                   key={type}
+                  data-testid={`button-type-${type}`}
                   onClick={() => {
                     setRecebimentoType(type);
                     setSearch("");
@@ -226,6 +232,7 @@ export default function RecebimentoRegistro() {
                 Voltar
               </button>
               <button
+                data-testid="button-next-step2"
                 onClick={() => {
                   if (!recebimentoType) {
                     toast({
@@ -245,7 +252,6 @@ export default function RecebimentoRegistro() {
           </div>
         )}
 
-        {/* STEP 3: Seleção de Produto/Solvente */}
         {step === 3 && (
           <div className="space-y-6 flex-1 flex flex-col">
             <div>
@@ -263,6 +269,7 @@ export default function RecebimentoRegistro() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
               <Input
+                data-testid="input-search-product"
                 type="text"
                 placeholder="Buscar..."
                 className="pl-10 h-14 text-lg rounded-xl"
@@ -285,6 +292,7 @@ export default function RecebimentoRegistro() {
                 {filteredProducts.map((p) => (
                   <button
                     key={p}
+                    data-testid={`button-product-${p}`}
                     onClick={() => {
                       setProduct(p);
                       setStep(4);
@@ -314,13 +322,12 @@ export default function RecebimentoRegistro() {
           </div>
         )}
 
-        {/* STEP 4: Quantidade e Observações */}
         {step === 4 && (
           <div className="space-y-6 flex-1">
             <div>
               <h2 className="text-2xl font-bold mb-2">4. Quantidade e Detalhes</h2>
               <p className="text-muted-foreground text-sm">
-                Informe quantidade, observações e foto da NF
+                Informe quantidade, status LCQ e observações
               </p>
             </div>
 
@@ -330,6 +337,7 @@ export default function RecebimentoRegistro() {
                   Quantidade (kg) <span className="text-destructive">*</span>
                 </Label>
                 <Input
+                  data-testid="input-quantity"
                   type="number"
                   inputMode="numeric"
                   placeholder="Ex: 1500"
@@ -342,9 +350,48 @@ export default function RecebimentoRegistro() {
 
               <div className="space-y-2">
                 <Label className="text-base text-muted-foreground">
+                  Status LCQ
+                </Label>
+                <div className="grid grid-cols-1 gap-2">
+                  {LCQ_STATUSES.map((status) => {
+                    let bgColor = "border-border bg-muted/50 text-foreground";
+                    let activeColor = "border-primary bg-primary/10 text-primary";
+
+                    if (statusLcq === status) {
+                      if (status === "Aguardando LCQ") {
+                        activeColor = "border-yellow-500 bg-yellow-500/10 text-yellow-700";
+                      } else if (status === "Liberado LCQ") {
+                        activeColor = "border-green-500 bg-green-500/10 text-green-700";
+                      } else {
+                        activeColor = "border-gray-400 bg-gray-100 text-gray-600";
+                      }
+                    }
+
+                    return (
+                      <button
+                        key={status}
+                        data-testid={`button-lcq-${status}`}
+                        onClick={() => setStatusLcq(status)}
+                        className={`w-full text-left p-3 rounded-xl border-2 transition-all font-semibold text-base flex items-center justify-between ${
+                          statusLcq === status ? activeColor : bgColor
+                        }`}
+                      >
+                        <span>{status}</span>
+                        {statusLcq === status && (
+                          <CheckCircle2 size={20} />
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-base text-muted-foreground">
                   Observação / Ocorrência
                 </Label>
                 <textarea
+                  data-testid="input-observacao"
                   value={observacao}
                   onChange={(e) => setObservacao(e.target.value)}
                   placeholder="Ex: aguardando LCQ ou bomba parada"
@@ -359,6 +406,7 @@ export default function RecebimentoRegistro() {
                 </Label>
                 <div className="flex gap-2">
                   <Input
+                    data-testid="input-nf"
                     type="text"
                     placeholder="Número da NF"
                     className="h-14 text-lg rounded-xl flex-1"
@@ -374,6 +422,7 @@ export default function RecebimentoRegistro() {
                     onChange={handleCapture}
                   />
                   <button
+                    data-testid="button-camera"
                     onClick={() => fileInputRef.current?.click()}
                     className={`h-14 w-14 flex items-center justify-center rounded-xl border-2 transition-colors ${
                       photo
@@ -411,6 +460,7 @@ export default function RecebimentoRegistro() {
                 Voltar
               </button>
               <button
+                data-testid="button-save"
                 onClick={handleSave}
                 className="flex-[2] py-4 rounded-xl bg-primary text-primary-foreground font-bold text-xl active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-lg"
               >

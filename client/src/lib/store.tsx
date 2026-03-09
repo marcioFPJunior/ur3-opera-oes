@@ -14,7 +14,14 @@ export interface OperationRecord {
   category: string;
   observacao?: string;
   photoUrl?: string;
+  statusLcq?: string;
 }
+
+export const LCQ_STATUSES = [
+  "Aguardando LCQ",
+  "Liberado LCQ",
+  "Não se aplica",
+];
 
 export const PRODUCTS = [
   "Aguarrás",
@@ -50,6 +57,7 @@ interface AppContextType {
   setCurrentUser: (user: string | null) => void;
   records: OperationRecord[];
   addRecord: (record: Omit<OperationRecord, "id" | "date">) => Promise<void>;
+  updateRecord: (id: string, data: Partial<OperationRecord>) => Promise<void>;
   deleteRecord: (id: string) => Promise<void>;
   clearAllRecords: () => Promise<void>;
   getRecordsByCategory: (category: string) => OperationRecord[];
@@ -75,7 +83,6 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     }
   }, [currentUser]);
 
-  // Sincroniza a cada 3 segundos
   useEffect(() => {
     const interval = setInterval(() => {
       loadRecords();
@@ -106,6 +113,21 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify(record),
       });
       if (!response.ok) throw new Error("Erro ao salvar");
+      await loadRecords();
+    } catch (error) {
+      console.error("Erro:", error);
+      throw error;
+    }
+  };
+
+  const updateRecord = async (id: string, data: Partial<OperationRecord>) => {
+    try {
+      const response = await fetch(`/api/operations/${id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Erro ao atualizar");
       await loadRecords();
     } catch (error) {
       console.error("Erro:", error);
@@ -155,6 +177,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setCurrentUser,
         records,
         addRecord,
+        updateRecord,
         deleteRecord,
         clearAllRecords,
         getRecordsByCategory,

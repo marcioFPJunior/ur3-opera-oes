@@ -7,6 +7,7 @@ export interface IStorage {
   addOperation(op: InsertOperation): Promise<Operation>;
   getOperations(): Promise<Operation[]>;
   getOperationsByCategory(category: string): Promise<Operation[]>;
+  updateOperation(id: string, data: Partial<InsertOperation>): Promise<Operation>;
   deleteOperation(id: string): Promise<void>;
   clearAllOperations(): Promise<void>;
 }
@@ -27,6 +28,15 @@ export class DatabaseStorage implements IStorage {
       .from(operations)
       .where(eq(operations.category, category))
       .orderBy(desc(operations.date));
+  }
+
+  async updateOperation(id: string, data: Partial<InsertOperation>): Promise<Operation> {
+    const result = await db
+      .update(operations)
+      .set(data)
+      .where(eq(operations.id, id))
+      .returning();
+    return result[0];
   }
 
   async deleteOperation(id: string): Promise<void> {
