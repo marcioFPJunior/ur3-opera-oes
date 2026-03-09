@@ -49,71 +49,94 @@ interface AppContextType {
   currentUser: string | null;
   setCurrentUser: (user: string | null) => void;
   records: OperationRecord[];
-  addRecord: (record: Omit<OperationRecord, "id" | "date">) => void;
-  deleteRecord: (id: string) => void;
-  clearAllRecords: () => void;
+  addRecord: (record: Omit<OperationRecord, "id" | "date">) => Promise<void>;
+  deleteRecord: (id: string) => Promise<void>;
+  clearAllRecords: () => Promise<void>;
   getRecordsByCategory: (category: string) => OperationRecord[];
   getTodayCount: () => number;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
-const STORAGE_KEY = "ur3_records";
-
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
     return localStorage.getItem("ur3_user");
   });
 
-  const [records, setRecords] = useState<OperationRecord[]>(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [records, setRecords] = useState<OperationRecord[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
     if (currentUser) {
       localStorage.setItem("ur3_user", currentUser);
+      loadRecords();
     } else {
       localStorage.removeItem("ur3_user");
     }
   }, [currentUser]);
 
+  // Sincroniza a cada 3 segundos
   useEffect(() => {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-  }, [records]);
-
-  // Sincroniza a cada 2 segundos com outros abas/celulares via storage
-  useEffect(() => {
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === STORAGE_KEY && e.newValue) {
-        try {
-          const updated = JSON.parse(e.newValue);
-          setRecords(updated);
-        } catch (error) {
-          console.error("Erro ao sincronizar registros:", error);
-        }
-      }
-    };
-
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    const interval = setInterval(() => {
+      loadRecords();
+    }, 3000);
+    return () => clearInterval(interval);
   }, []);
 
-  const addRecord = (record: Omit<OperationRecord, "id" | "date">) => {
-    const newRecord: OperationRecord = {
-      ...record,
-      id: crypto.randomUUID(),
-      date: new Date().toISOString(),
-    };
-    setRecords((prev) => [newRecord, ...prev]);
+  const loadRecords = async () => {
+    try {
+      setIsLoading(true);
+      const response = await fetch("/api/operations");
+      if (response.ok) {
+        const data = await response.json();
+        setRecords(data);
+      }
+    } catch (error) {
+      console.error("Erro ao carregar registros:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const deleteRecord = (id: string) => {
-    setRecords((prev) => prev.filter((r) => r.id !== id));
+  const addRecord = async (record: Omit<OperationRecord, "id" | "date">) => {
+    try {
+      const response = await fetch("/api/operations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(record),
+      });
+      if (!response.ok) throw new Error("Erro ao salvar");
+      await loadRecords();
+    } catch (error) {
+      console.error("Erro:", error);
+      throw error;
+    }
   };
 
-  const clearAllRecords = () => {
-    setRecords([]);
+  const deleteRecord = async (id: string) => {
+    try {
+      const response = await fetch(`/api/operations/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Erro ao deletar");
+      await loadRecords();
+    } catch (error) {
+      console.error("Erro:", error);
+      throw error;
+    }
+  };
+
+  const clearAllRecords = async () => {
+    try {
+      const response = await fetch("/api/operations", {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Erro ao limpar");
+      await loadRecords();
+    } catch (error) {
+      console.error("Erro:", error);
+      throw error;
+    }
   };
 
   const getRecordsByCategory = (category: string) => {

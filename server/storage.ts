@@ -6,7 +6,6 @@ import { eq, desc } from "drizzle-orm";
 export interface IStorage {
   addOperation(op: InsertOperation): Promise<Operation>;
   getOperations(): Promise<Operation[]>;
-  getOperationsByCategory(category: string): Promise<Operation[]>;
   deleteOperation(id: string): Promise<void>;
   clearAllOperations(): Promise<void>;
 }
@@ -18,18 +17,7 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getOperations(): Promise<Operation[]> {
-    return db
-      .select()
-      .from(operations)
-      .orderBy(desc(operations.date));
-  }
-
-  async getOperationsByCategory(category: string): Promise<Operation[]> {
-    return db
-      .select()
-      .from(operations)
-      .where(eq(operations.category, category))
-      .orderBy(desc(operations.date));
+    return db.select().from(operations).orderBy(desc(operations.date));
   }
 
   async deleteOperation(id: string): Promise<void> {
