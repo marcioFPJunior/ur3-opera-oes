@@ -4,11 +4,12 @@ export interface OperationRecord {
   id: string;
   date: string;
   user: string;
+  motorista?: string;
+  placa?: string;
+  pedido?: string;
   product: string;
   quantity: string;
   nf?: string;
-  pedido?: string;
-  placa?: string;
   operation: string;
   category: string;
   observacao?: string;
@@ -33,13 +34,14 @@ export const PRODUCTS = [
   "Solvesso 200",
   "Solvesso 1500",
 ];
+
+export const SOLVENTES = ["Aguarrás", "Hexano", "Xileno"];
+
 export const RECEBIMENTO_PRODUCTS = PRODUCTS.filter(
-  (p) => !["Aguarrás", "Hexano", "Xileno"].includes(p),
+  (p) => !SOLVENTES.includes(p),
 );
 
-export const SOLVENTES = ["Hexano", "Xileno", "Aguarrás"];
-
-export const RECEBIMENTO_TYPES = ["Recebimento UR3", "Recebimento tanque"];
+export const RECEBIMENTO_TYPES = ["Recebimento UR3", "Recebimento para Tanque"];
 
 export const EXPEDIÇÃO_TYPES = ["Carregamento de caminhão"];
 
@@ -112,8 +114,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
 export function useAppContext() {
   const context = useContext(AppContext);
-  if (!context) {
-    throw new Error("useAppContext must be used within an AppProvider");
+  if (context === undefined) {
+    throw new Error("useAppContext must be used within AppProvider");
   }
   return context;
 }
