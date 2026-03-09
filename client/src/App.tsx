@@ -7,6 +7,7 @@ import { AppProvider, useAppContext } from "./lib/store";
 
 import Login from "@/pages/Login";
 import Home from "@/pages/Home";
+import AdminPanel from "@/pages/AdminPanel";
 import Recebimento from "@/pages/Recebimento";
 import RecebimentoRegistro from "@/pages/RecebimentoRegistro";
 import Expedicao from "@/pages/Expedicao";
@@ -38,6 +39,15 @@ function Router() {
         {() => (
           <Layout>
             <ProtectedRoute component={Home} />
+          </Layout>
+        )}
+      </Route>
+
+      {/* Admin Panel */}
+      <Route path="/admin">
+        {() => (
+          <Layout backTo="/">
+            <ProtectedRoute component={AdminPanel} />
           </Layout>
         )}
       </Route>

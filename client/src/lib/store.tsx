@@ -50,6 +50,8 @@ interface AppContextType {
   setCurrentUser: (user: string | null) => void;
   records: OperationRecord[];
   addRecord: (record: Omit<OperationRecord, "id" | "date">) => void;
+  deleteRecord: (id: string) => void;
+  clearAllRecords: () => void;
   getRecordsByCategory: (category: string) => OperationRecord[];
   getTodayCount: () => number;
 }
@@ -87,6 +89,14 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
     setRecords((prev) => [newRecord, ...prev]);
   };
 
+  const deleteRecord = (id: string) => {
+    setRecords((prev) => prev.filter((r) => r.id !== id));
+  };
+
+  const clearAllRecords = () => {
+    setRecords([]);
+  };
+
   const getRecordsByCategory = (category: string) => {
     return records.filter((r) => r.category === category);
   };
@@ -103,6 +113,8 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
         setCurrentUser,
         records,
         addRecord,
+        deleteRecord,
+        clearAllRecords,
         getRecordsByCategory,
         getTodayCount,
       }}

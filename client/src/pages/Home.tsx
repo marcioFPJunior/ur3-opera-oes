@@ -1,6 +1,6 @@
 import { useLocation } from "wouter";
 import { useAppContext } from "@/lib/store";
-import { TrendingUp, Truck, Droplet } from "lucide-react";
+import { TrendingUp, Truck, Droplet, Settings } from "lucide-react";
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -11,12 +11,18 @@ export default function Home() {
   return (
     <div className="p-4 space-y-6">
       <div className="bg-card rounded-2xl p-5 shadow-sm border border-border/50">
-        <p className="text-sm font-medium text-muted-foreground mb-1">Operador Logado</p>
+        <p className="text-sm font-medium text-muted-foreground mb-1">
+          Operador Logado
+        </p>
         <div className="flex justify-between items-end">
           <h2 className="text-2xl font-bold text-foreground">{currentUser}</h2>
           <div className="text-right">
-            <p className="text-3xl font-black text-primary leading-none">{todayCount}</p>
-            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mt-1">Registros Hoje</p>
+            <p className="text-3xl font-black text-primary leading-none">
+              {todayCount}
+            </p>
+            <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider mt-1">
+              Registros Hoje
+            </p>
           </div>
         </div>
       </div>
@@ -46,6 +52,16 @@ export default function Home() {
           <span className="text-xl font-bold">Transbordo</span>
         </button>
       </div>
+
+      {currentUser === "Márcio" && (
+        <button
+          onClick={() => setLocation("/admin")}
+          className="w-full flex items-center justify-center gap-2 bg-yellow-500/20 hover:bg-yellow-500/30 border-2 border-yellow-500 text-yellow-900 p-4 rounded-2xl font-bold active:scale-95 transition-transform mt-6"
+        >
+          <Settings size={20} />
+          Painel de Administração
+        </button>
+      )}
     </div>
   );
 }
