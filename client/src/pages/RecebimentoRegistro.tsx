@@ -1,6 +1,6 @@
 import React, { useState, useRef } from "react";
 import { useLocation } from "wouter";
-import { useAppContext, PRODUCTS } from "@/lib/store";
+import { useAppContext, RECEBIMENTO_PRODUCTS } from "@/lib/store";
 import { useToast } from "@/hooks/use-toast";
 import { Camera, Search, X, CheckCircle2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -21,11 +21,14 @@ export default function RecebimentoRegistro() {
   const [quantity, setQuantity] = useState("");
   const [nf, setNf] = useState("");
   const [observacao, setObservacao] = useState("");
+  const [pedido, setPedido] = useState("");
+  const [placa, setPlaca] = useState("");
   const [photo, setPhoto] = useState<string | null>(null);
+  const [horaRegistro] = useState(new Date().toLocaleTimeString());
 
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const filteredProducts = PRODUCTS.filter((p) =>
+  const filteredProducts = RECEBIMENTO_PRODUCTS.filter((p) =>
     p.toLowerCase().includes(search.toLowerCase()),
   );
 
@@ -47,13 +50,18 @@ export default function RecebimentoRegistro() {
       return;
     }
 
-    const operationType = type === "ur3" ? "Recebimento UR3" : "Recebimento tanque";
+    const operationType =
+      type === "ur3" ? "Recebimento UR3" : "Recebimento tanque";
 
     addRecord({
       user: currentUser!,
       product,
       quantity,
       nf,
+      pedido,
+      placa,
+  
+      hora: horaRegistro,
       operation: operationType,
       category: "Recebimento",
       photoUrl: photo || undefined,
@@ -71,8 +79,12 @@ export default function RecebimentoRegistro() {
     <div className="flex flex-col h-full bg-muted/30">
       <div className="bg-card px-4 py-3 border-b">
         <div className="flex gap-2">
-          <div className={`h-2 flex-1 rounded-full ${step >= 1 ? "bg-primary" : "bg-muted"}`} />
-          <div className={`h-2 flex-1 rounded-full ${step >= 2 ? "bg-primary" : "bg-muted"}`} />
+          <div
+            className={`h-2 flex-1 rounded-full ${step >= 1 ? "bg-primary" : "bg-muted"}`}
+          />
+          <div
+            className={`h-2 flex-1 rounded-full ${step >= 2 ? "bg-primary" : "bg-muted"}`}
+          />
         </div>
       </div>
 
@@ -80,12 +92,19 @@ export default function RecebimentoRegistro() {
         {step === 1 && (
           <div className="space-y-6 flex-1 flex flex-col">
             <div>
-              <h2 className="text-2xl font-bold mb-2">1. Selecione o Produto</h2>
-              <p className="text-muted-foreground text-sm">Pesquise ou selecione na lista</p>
+              <h2 className="text-2xl font-bold mb-2">
+                1. Selecione o Produto
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                Pesquise ou selecione na lista
+              </p>
             </div>
 
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
+                size={20}
+              />
               <Input
                 type="text"
                 placeholder="Buscar produto..."
@@ -131,44 +150,56 @@ export default function RecebimentoRegistro() {
         {step === 2 && (
           <div className="space-y-6 flex-1">
             <div>
-              <h2 className="text-2xl font-bold mb-2">2. Detalhes ({product})</h2>
-              <p className="text-muted-foreground text-sm">Informe quantidade, observações e nota fiscal</p>
-            </div>
-
-            <div className="space-y-4 bg-card p-5 rounded-2xl border shadow-sm flex-1 overflow-y-auto">
+              <h2 className="text-2xl font-bold mb-2">
+                2. Detalhes ({product})
+              </h2>
+              <p className="text-muted-foreground text-sm">
+                Informe a quantidade e nota fiscal
+              </p>  
               <div className="space-y-2">
                 <Label className="text-base text-muted-foreground">
-                  Quantidade (kg) <span className="text-destructive">*</span>
+                  Pedido
                 </Label>
+
                 <Input
-                  type="number"
-                  inputMode="numeric"
-                  placeholder="Ex: 1500"
-                  className="h-14 text-xl font-bold rounded-xl"
-                  value={quantity}
-                  onChange={(e) => setQuantity(e.target.value)}
-                  autoFocus
+                  type="text"
+                  placeholder="Ex: 45821"
+                  value={pedido}
+                  onChange={(e) => setPedido(e.target.value)}
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label className="text-base text-muted-foreground">Observação / Ocorrência</Label>
+                <div className="space-y-2">
+
+                  <Label className="text-base text-muted-foreground">
+                Quantidade (kg) <span className="text-destructive"></span>
+                  </Label>
+
+                  <Input
+                    type="number"
+                    placeholder="Ex: 1500"
+                    value={quantity}
+                    onChange={(e) => setQuantity(e.target.value)}
+                  />
+                </div>
+                  Observação / Ocorrência
+                </Label>
                 <textarea
                   value={observacao}
                   onChange={(e) => setObservacao(e.target.value)}
                   placeholder="Ex: aguardando LCQ ou bomba parada"
-                  className="w-full border-2 border-border rounded-xl p-3 focus:outline-none focus:border-primary resize-none"
-                  rows={3}
+                  className="w-full border-2 border-border rounded-xl p-3 focus:outline-none focus:border-primary"
                 />
               </div>
-
               <div className="space-y-2">
-                <Label className="text-base text-muted-foreground">Nota Fiscal (NF)</Label>
+                <Label className="text-base text-muted-foreground">
+                  Nota Fiscal (NF)
+                </Label>
                 <div className="flex gap-2">
                   <Input
                     type="text"
                     placeholder="Número da NF"
-                    className="h-14 text-lg rounded-xl flex-1"
+                    className="h-16 text-xl rounded-xl flex-1"
                     value={nf}
                     onChange={(e) => setNf(e.target.value)}
                   />
@@ -182,43 +213,27 @@ export default function RecebimentoRegistro() {
                   />
                   <button
                     onClick={() => fileInputRef.current?.click()}
-                    className={`h-14 w-14 flex items-center justify-center rounded-xl border-2 transition-colors
+                    className={`h-16 w-16 flex items-center justify-center rounded-xl border-2 transition-colors
                       ${photo ? "bg-primary/10 border-primary text-primary" : "bg-muted border-border text-muted-foreground hover:bg-muted/80"}`}
                   >
-                    <Camera size={24} />
+                    <Camera size={28} />
                   </button>
                 </div>
-                {photo && (
-                  <div className="mt-2 relative rounded-xl overflow-hidden h-32 border">
-                    <img src={photo} alt="NF capture" className="w-full h-full object-cover" />
-                    <button
-                      onClick={() => setPhoto(null)}
-                      className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full"
-                    >
-                      <X size={16} />
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
+      {photo && (
+        <div className="mt-2 relative rounded-xl overflow-hidden border">
 
-            <div className="flex gap-3 pt-4 pb-8">
-              <button
-                onClick={() => setStep(1)}
-                className="flex-1 py-4 rounded-xl border-2 font-bold text-lg text-muted-foreground active:bg-muted"
-              >
-                Voltar
-              </button>
-              <button
-                onClick={handleSave}
-                className="flex-[2] py-4 rounded-xl bg-primary text-primary-foreground font-bold text-xl active:scale-95 transition-transform flex items-center justify-center gap-2 shadow-lg"
-              >
-                <CheckCircle2 /> Salvar
-              </button>
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-}
+          <img
+            src={photo}
+            alt="NF capture"
+            className="w-full h-full object-cover"
+          />
+
+          <button
+            onClick={() => setPhoto(null)}
+            className="absolute top-2 right-2 bg-black/50 text-white p-1 rounded-full"
+          >
+            <X size={16} />
+          </button>
+
+        </div>
+      )}
