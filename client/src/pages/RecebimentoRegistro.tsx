@@ -47,7 +47,7 @@ export default function RecebimentoRegistro() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!motorista || !placa || !product || !quantity) {
       toast({
         title: "Campos obrigatórios",
@@ -57,26 +57,34 @@ export default function RecebimentoRegistro() {
       return;
     }
 
-    addRecord({
-      user: currentUser!,
-      motorista,
-      placa,
-      pedido,
-      product,
-      quantity,
-      nf,
-      observacao,
-      operation: recebimentoType,
-      category: "Recebimento",
-      photoUrl: photo || undefined,
-    });
+    try {
+      await addRecord({
+        user: currentUser!,
+        motorista,
+        placa,
+        pedido,
+        product,
+        quantity,
+        nf,
+        observacao,
+        operation: recebimentoType,
+        category: "Recebimento",
+        photoUrl: photo || undefined,
+      });
 
-    toast({
-      title: "Sucesso",
-      description: "Registro salvo com sucesso!",
-    });
+      toast({
+        title: "Sucesso",
+        description: "Registro salvo com sucesso!",
+      });
 
-    setLocation("/recebimento");
+      setLocation("/recebimento");
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   const progressSteps = [

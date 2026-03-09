@@ -34,7 +34,7 @@ export default function ExpedicaoRegistro() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!product || !quantity) {
       toast({
         title: "Campos obrigatórios",
@@ -44,22 +44,30 @@ export default function ExpedicaoRegistro() {
       return;
     }
 
-    addRecord({
-      user: currentUser!,
-      product,
-      quantity,
-      nf,
-      operation: "Carregamento de caminhão",
-      category: "Expedição",
-      photoUrl: photo || undefined
-    });
+    try {
+      await addRecord({
+        user: currentUser!,
+        product,
+        quantity,
+        nf,
+        operation: "Carregamento de caminhão",
+        category: "Expedição",
+        photoUrl: photo || undefined
+      });
 
-    toast({
-      title: "Sucesso",
-      description: "Carregamento registrado com sucesso!",
-    });
-    
-    setLocation("/expedicao");
+      toast({
+        title: "Sucesso",
+        description: "Carregamento registrado com sucesso!",
+      });
+      
+      setLocation("/expedicao");
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

@@ -32,31 +32,47 @@ export default function AdminPanel() {
       r.product.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
-  const handleClearAll = () => {
+  const handleClearAll = async () => {
     if (
       confirm(
         "⚠️ Tem certeza que deseja APAGAR TODOS OS REGISTROS? Essa ação não pode ser desfeita!",
       )
     ) {
-      clearAllRecords();
-      toast({
-        title: "Limpeza Completa",
-        description: "Todos os registros foram apagados.",
-      });
+      try {
+        await clearAllRecords();
+        toast({
+          title: "Limpeza Completa",
+          description: "Todos os registros foram apagados.",
+        });
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Não foi possível limpar os registros.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
-  const handleDeleteRecord = (id: string) => {
+  const handleDeleteRecord = async (id: string) => {
     if (confirm("Deseja deletar este registro?")) {
-      deleteRecord(id);
-      toast({
-        title: "Registro deletado",
-        description: "O registro foi removido com sucesso.",
-      });
+      try {
+        await deleteRecord(id);
+        toast({
+          title: "Registro deletado",
+          description: "O registro foi removido com sucesso.",
+        });
+      } catch (error) {
+        toast({
+          title: "Erro",
+          description: "Não foi possível deletar o registro.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
-  const handleAddRecord = () => {
+  const handleAddRecord = async () => {
     if (!newRecord.motorista || !newRecord.product || !newRecord.quantity) {
       toast({
         title: "Campos obrigatórios",
@@ -66,34 +82,42 @@ export default function AdminPanel() {
       return;
     }
 
-    addRecord({
-      user: currentUser!,
-      motorista: newRecord.motorista,
-      placa: newRecord.placa,
-      pedido: newRecord.pedido,
-      product: newRecord.product,
-      quantity: newRecord.quantity,
-      operation: newRecord.operation || "Recebimento UR3",
-      category: newRecord.category,
-      observacao: newRecord.observacao,
-    });
+    try {
+      await addRecord({
+        user: currentUser!,
+        motorista: newRecord.motorista,
+        placa: newRecord.placa,
+        pedido: newRecord.pedido,
+        product: newRecord.product,
+        quantity: newRecord.quantity,
+        operation: newRecord.operation || "Recebimento UR3",
+        category: newRecord.category,
+        observacao: newRecord.observacao,
+      });
 
-    toast({
-      title: "Sucesso",
-      description: "Registro adicionado manualmente.",
-    });
+      toast({
+        title: "Sucesso",
+        description: "Registro adicionado manualmente.",
+      });
 
-    setNewRecord({
-      motorista: "",
-      placa: "",
-      pedido: "",
-      product: "",
-      quantity: "",
-      operation: "",
-      observacao: "",
-      category: "Recebimento",
-    });
-    setShowAddForm(false);
+      setNewRecord({
+        motorista: "",
+        placa: "",
+        pedido: "",
+        product: "",
+        quantity: "",
+        operation: "",
+        observacao: "",
+        category: "Recebimento",
+      });
+      setShowAddForm(false);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível adicionar o registro.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (

@@ -29,7 +29,7 @@ export default function TransbordoRegistro() {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!quantity) {
       toast({
         title: "Campos obrigatórios",
@@ -39,22 +39,30 @@ export default function TransbordoRegistro() {
       return;
     }
 
-    addRecord({
-      user: currentUser!,
-      product: solvente,
-      quantity,
-      nf: tank,
-      operation: "Transbordo",
-      category: "Transbordo",
-      photoUrl: photo || undefined
-    });
+    try {
+      await addRecord({
+        user: currentUser!,
+        product: solvente,
+        quantity,
+        nf: tank,
+        operation: "Transbordo",
+        category: "Transbordo",
+        photoUrl: photo || undefined
+      });
 
-    toast({
-      title: "Sucesso",
-      description: "Transbordo registrado com sucesso!",
-    });
-    
-    setLocation(`/transbordo/${solvente.toLowerCase()}`);
+      toast({
+        title: "Sucesso",
+        description: "Transbordo registrado com sucesso!",
+      });
+      
+      setLocation(`/transbordo/${solvente.toLowerCase()}`);
+    } catch (error) {
+      toast({
+        title: "Erro",
+        description: "Não foi possível salvar. Tente novamente.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
