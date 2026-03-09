@@ -47,8 +47,7 @@ export default function RecebimentoRegistro() {
       return;
     }
 
-    const operationType =
-      type === "ur3" ? "Recebimento UR3" : "Recebimento tanque";
+    const operationType = type === "ur3" ? "Recebimento UR3" : "Recebimento tanque";
 
     addRecord({
       user: currentUser!,
@@ -72,12 +71,8 @@ export default function RecebimentoRegistro() {
     <div className="flex flex-col h-full bg-muted/30">
       <div className="bg-card px-4 py-3 border-b">
         <div className="flex gap-2">
-          <div
-            className={`h-2 flex-1 rounded-full ${step >= 1 ? "bg-primary" : "bg-muted"}`}
-          />
-          <div
-            className={`h-2 flex-1 rounded-full ${step >= 2 ? "bg-primary" : "bg-muted"}`}
-          />
+          <div className={`h-2 flex-1 rounded-full ${step >= 1 ? "bg-primary" : "bg-muted"}`} />
+          <div className={`h-2 flex-1 rounded-full ${step >= 2 ? "bg-primary" : "bg-muted"}`} />
         </div>
       </div>
 
@@ -85,19 +80,14 @@ export default function RecebimentoRegistro() {
         {step === 1 && (
           <div className="space-y-6 flex-1 flex flex-col">
             <div>
-              <h2 className="text-2xl font-bold mb-2">
-                1. Selecione o Produto
-              </h2>
+              <h2 className="text-2xl font-bold mb-2">1. Selecione o Produto</h2>
               <p className="text-muted-foreground text-sm">
                 Pesquise ou selecione na lista
               </p>
             </div>
 
             <div className="relative">
-              <Search
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
-                size={20}
-              />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={20} />
               <Input
                 type="text"
                 placeholder="Buscar produto..."
@@ -143,11 +133,9 @@ export default function RecebimentoRegistro() {
         {step === 2 && (
           <div className="space-y-6 flex-1">
             <div>
-              <h2 className="text-2xl font-bold mb-2">
-                2. Detalhes ({product})
-              </h2>
+              <h2 className="text-2xl font-bold mb-2">2. Detalhes ({product})</h2>
               <p className="text-muted-foreground text-sm">
-                Informe a quantidade e nota fiscal
+                Informe a quantidade, nota fiscal e observações
               </p>
             </div>
 
@@ -166,16 +154,17 @@ export default function RecebimentoRegistro() {
                   autoFocus
                 />
               </div>
+
               <div className="space-y-2">
                 <Label className="text-base text-muted-foreground">
                   Observação / Ocorrência
                 </Label>
-
                 <textarea
                   value={observacao}
                   onChange={(e) => setObservacao(e.target.value)}
                   placeholder="Ex: aguardando LCQ ou bomba parada"
-                  className="w-full border-2 border-border rounded-xl p-3 focus:outline-none focus:border-primary"
+                  className="w-full border-2 border-border rounded-xl p-3 focus:outline-none focus:border-primary resize-none"
+                  rows={3}
                 />
               </div>
 

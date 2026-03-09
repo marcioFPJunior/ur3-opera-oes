@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect } from "react";
 
 export interface OperationRecord {
   id: string;
@@ -6,35 +6,48 @@ export interface OperationRecord {
   user: string;
   product: string;
   quantity: string;
-  nf: string;
+  nf?: string;
+  pedido?: string;
+  placa?: string;
   operation: string;
   category: string;
+  observacao?: string;
   photoUrl?: string;
 }
 
 export const PRODUCTS = [
-  "Aguarrás", "Hexano", "Xileno", "Paraformol", "Ácido salicílico",
-  "Paraterciário butilfenol", "Acetato de zinco", "Diacetona álcool",
-  "Dibasic Ester (DBE)", "Ácido paratolueno", "Ácido sulfúrico",
-  "Silane 1524", "Solvesso 100", "Solvesso 150", "Solvesso 200", "Solvesso 1500"
+  "Aguarrás",
+  "Hexano",
+  "Xileno",
+  "Paraformol",
+  "Ácido salicílico",
+  "Paraterciário butilfenol",
+  "Acetato de zinco",
+  "Diacetona álcool",
+  "Dibasic Ester (DBE)",
+  "Ácido paratolueno",
+  "Ácido sulfúrico",
+  "Silane 1524",
+  "Solvesso 100",
+  "Solvesso 150",
+  "Solvesso 200",
+  "Solvesso 1500",
 ];
+export const RECEBIMENTO_PRODUCTS = PRODUCTS.filter(
+  (p) => !["Aguarrás", "Hexano", "Xileno"].includes(p),
+);
 
 export const SOLVENTES = ["Hexano", "Xileno", "Aguarrás"];
 
-export const RECEBIMENTO_TYPES = [
-  "Recebimento UR3",
-  "Recebimento tanque"
-];
+export const RECEBIMENTO_TYPES = ["Recebimento UR3", "Recebimento tanque"];
 
-export const EXPEDIÇÃO_TYPES = [
-  "Carregamento de caminhão"
-];
+export const EXPEDIÇÃO_TYPES = ["Carregamento de caminhão"];
 
 interface AppContextType {
   currentUser: string | null;
   setCurrentUser: (user: string | null) => void;
   records: OperationRecord[];
-  addRecord: (record: Omit<OperationRecord, 'id' | 'date'>) => void;
+  addRecord: (record: Omit<OperationRecord, "id" | "date">) => void;
   getRecordsByCategory: (category: string) => OperationRecord[];
   getTodayCount: () => number;
 }
@@ -43,46 +56,55 @@ const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: React.ReactNode }) {
   const [currentUser, setCurrentUser] = useState<string | null>(() => {
-    return localStorage.getItem('ur3_user');
+    return localStorage.getItem("ur3_user");
   });
 
   const [records, setRecords] = useState<OperationRecord[]>(() => {
-    const saved = localStorage.getItem('ur3_records');
+    const saved = localStorage.getItem("ur3_records");
     return saved ? JSON.parse(saved) : [];
   });
 
   useEffect(() => {
     if (currentUser) {
-      localStorage.setItem('ur3_user', currentUser);
+      localStorage.setItem("ur3_user", currentUser);
     } else {
-      localStorage.removeItem('ur3_user');
+      localStorage.removeItem("ur3_user");
     }
   }, [currentUser]);
 
   useEffect(() => {
-    localStorage.setItem('ur3_records', JSON.stringify(records));
+    localStorage.setItem("ur3_records", JSON.stringify(records));
   }, [records]);
 
-  const addRecord = (record: Omit<OperationRecord, 'id' | 'date'>) => {
+  const addRecord = (record: Omit<OperationRecord, "id" | "date">) => {
     const newRecord: OperationRecord = {
       ...record,
       id: crypto.randomUUID(),
       date: new Date().toISOString(),
     };
-    setRecords(prev => [newRecord, ...prev]);
+    setRecords((prev) => [newRecord, ...prev]);
   };
 
   const getRecordsByCategory = (category: string) => {
-    return records.filter(r => r.category === category);
+    return records.filter((r) => r.category === category);
   };
 
   const getTodayCount = () => {
-    const today = new Date().toISOString().split('T')[0];
-    return records.filter(r => r.date.startsWith(today)).length;
+    const today = new Date().toISOString().split("T")[0];
+    return records.filter((r) => r.date.startsWith(today)).length;
   };
 
   return (
-    <AppContext.Provider value={{ currentUser, setCurrentUser, records, addRecord, getRecordsByCategory, getTodayCount }}>
+    <AppContext.Provider
+      value={{
+        currentUser,
+        setCurrentUser,
+        records,
+        addRecord,
+        getRecordsByCategory,
+        getTodayCount,
+      }}
+    >
       {children}
     </AppContext.Provider>
   );
@@ -91,7 +113,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 export function useAppContext() {
   const context = useContext(AppContext);
   if (!context) {
-    throw new Error('useAppContext must be used within an AppProvider');
+    throw new Error("useAppContext must be used within an AppProvider");
   }
   return context;
 }
