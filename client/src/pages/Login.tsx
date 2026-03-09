@@ -30,15 +30,15 @@ export default function Login() {
             className="w-full flex items-center justify-center gap-4 bg-card border-2 border-primary text-primary py-5 rounded-2xl text-xl font-bold hover:bg-primary/5 active:bg-primary/10 transition-all active:scale-95 shadow-sm"
           >
             <User size={28} />
-            Márcio
+            Márcio (Administrador)
           </button>
           
           <button
-            onClick={() => handleLogin("Carlos")}
+            onClick={() => handleLogin("Anderson")}
             className="w-full flex items-center justify-center gap-4 bg-card border-2 border-primary text-primary py-5 rounded-2xl text-xl font-bold hover:bg-primary/5 active:bg-primary/10 transition-all active:scale-95 shadow-sm"
           >
             <User size={28} />
-            Carlos
+            Anderson
           </button>
         </div>
       </div>
