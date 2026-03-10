@@ -7,6 +7,7 @@ export interface OperationRecord {
   motorista?: string;
   placa?: string;
   pedido?: string;
+  transportadora?: string;
   product: string;
   quantity: string;
   nf?: string;
@@ -15,42 +16,51 @@ export interface OperationRecord {
   observacao?: string;
   photoUrl?: string;
   statusLcq?: string;
+  sampleCollectionTime?: string;
+  lcqApprovalTime?: string;
+  packaging?: string;
 }
 
 export const LCQ_STATUSES = [
   "Aguardando LCQ",
-  "Liberado LCQ",
-  "Não se aplica",
+  "Aprovado",
+  "Reprovado",
 ];
 
-export const PRODUCTS = [
-  "Aguarrás",
-  "Hexano",
-  "Xileno",
-  "Paraformol",
-  "Ácido salicílico",
-  "Paraterciário butilfenol",
-  "Acetato de zinco",
-  "Diacetona álcool",
-  "Dibasic Ester (DBE)",
-  "Ácido paratolueno",
-  "Ácido sulfúrico",
-  "Silane 1524",
-  "Solvesso 100",
-  "Solvesso 150",
-  "Solvesso 200",
-  "Solvesso 1500",
+export interface MaterialInfo {
+  name: string;
+  packaging: string;
+}
+
+export const UR3_MATERIALS: MaterialInfo[] = [
+  { name: "Paraformol", packaging: "Sacaria 25 kg" },
+  { name: "Ácido salicílico", packaging: "Sacaria 25 kg" },
+  { name: "Paraterciário butilfenol", packaging: "Sacaria 25 kg" },
+  { name: "Acetato de zinco", packaging: "Sacaria 25 kg" },
+  { name: "Diacetona álcool", packaging: "Tambor 200 kg" },
+  { name: "Dibasic Ester (DBE)", packaging: "Tambor 200 kg" },
+  { name: "Ácido paratolueno", packaging: "Sacaria 25 kg" },
+  { name: "Ácido sulfúrico", packaging: "IBC 1000 kg" },
+  { name: "Silane 1524", packaging: "Tambor 200 kg" },
+  { name: "Solvesso 100", packaging: "IBC 1000 kg" },
+  { name: "Solvesso 150", packaging: "IBC 1000 kg" },
+  { name: "Solvesso 200", packaging: "IBC 1000 kg" },
+  { name: "Solvesso 1500", packaging: "IBC 1000 kg" },
+  { name: "Solventes em IBC", packaging: "IBC" },
 ];
 
 export const SOLVENTES = ["Aguarrás", "Hexano", "Xileno"];
 
-export const RECEBIMENTO_PRODUCTS = PRODUCTS.filter(
-  (p) => !SOLVENTES.includes(p),
-);
-
 export const RECEBIMENTO_TYPES = ["Recebimento UR3", "Recebimento para Tanque"];
 
 export const EXPEDIÇÃO_TYPES = ["Carregamento de caminhão"];
+
+export const PRODUCTS = [
+  ...UR3_MATERIALS.map((m) => m.name),
+  ...SOLVENTES,
+];
+
+export const RECEBIMENTO_PRODUCTS = UR3_MATERIALS.map((m) => m.name);
 
 interface AppContextType {
   currentUser: string | null;

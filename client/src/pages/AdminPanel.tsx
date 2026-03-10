@@ -12,8 +12,10 @@ function LcqBadge({ status }: { status?: string }) {
   let colors = "bg-gray-100 text-gray-600";
   if (status === "Aguardando LCQ") {
     colors = "bg-yellow-50 text-yellow-700";
-  } else if (status === "Liberado LCQ") {
+  } else if (status === "Aprovado") {
     colors = "bg-green-50 text-green-700";
+  } else if (status === "Reprovado") {
+    colors = "bg-red-50 text-red-700";
   }
 
   return (
@@ -36,6 +38,7 @@ export default function AdminPanel() {
     motorista: "",
     placa: "",
     pedido: "",
+    transportadora: "",
     product: "",
     quantity: "",
     operation: "",
@@ -48,13 +51,14 @@ export default function AdminPanel() {
     (r) =>
       r.motorista?.toLowerCase().includes(searchQuery.toLowerCase()) ||
       r.placa?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      r.product.toLowerCase().includes(searchQuery.toLowerCase()),
+      r.product.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      r.transportadora?.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
   const handleClearAll = async () => {
     if (
       confirm(
-        "⚠️ Tem certeza que deseja APAGAR TODOS OS REGISTROS? Essa ação não pode ser desfeita!",
+        "Tem certeza que deseja APAGAR TODOS OS REGISTROS? Essa ação não pode ser desfeita!",
       )
     ) {
       try {
@@ -92,10 +96,10 @@ export default function AdminPanel() {
   };
 
   const handleAddRecord = async () => {
-    if (!newRecord.motorista || !newRecord.product || !newRecord.quantity) {
+    if (!newRecord.product || !newRecord.quantity) {
       toast({
         title: "Campos obrigatórios",
-        description: "Preencha Motorista, Produto e Quantidade.",
+        description: "Preencha Produto e Quantidade.",
         variant: "destructive",
       });
       return;
@@ -107,6 +111,7 @@ export default function AdminPanel() {
         motorista: newRecord.motorista,
         placa: newRecord.placa,
         pedido: newRecord.pedido,
+        transportadora: newRecord.transportadora,
         product: newRecord.product,
         quantity: newRecord.quantity,
         operation: newRecord.operation || "Recebimento UR3",
@@ -124,6 +129,7 @@ export default function AdminPanel() {
         motorista: "",
         placa: "",
         pedido: "",
+        transportadora: "",
         product: "",
         quantity: "",
         operation: "",
@@ -143,7 +149,14 @@ export default function AdminPanel() {
 
   const handleQuickLcqUpdate = async (id: string, newStatus: string) => {
     try {
-      await updateRecord(id, { statusLcq: newStatus });
+      const updates: Record<string, string> = { statusLcq: newStatus };
+      if (newStatus === "Aprovado") {
+        updates.lcqApprovalTime = new Date().toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+      await updateRecord(id, updates);
       toast({
         title: "Status atualizado",
         description: `LCQ alterado para "${newStatus}".`,
@@ -172,7 +185,7 @@ export default function AdminPanel() {
         <Input
           data-testid="input-admin-search"
           type="text"
-          placeholder="Buscar por motorista, placa ou produto..."
+          placeholder="Buscar por placa, produto, transportadora..."
           className="h-12 text-lg rounded-xl"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
@@ -213,13 +226,13 @@ export default function AdminPanel() {
           </div>
 
           <div>
-            <Label className="text-sm">Motorista *</Label>
+            <Label className="text-sm">Pedido/NF</Label>
             <Input
               type="text"
-              placeholder="Ex: João Silva"
-              value={newRecord.motorista}
+              placeholder="Ex: 45821"
+              value={newRecord.pedido}
               onChange={(e) =>
-                setNewRecord({ ...newRecord, motorista: e.target.value })
+                setNewRecord({ ...newRecord, pedido: e.target.value })
               }
               className="h-10 text-sm"
             />
@@ -239,13 +252,13 @@ export default function AdminPanel() {
           </div>
 
           <div>
-            <Label className="text-sm">Pedido/NF</Label>
+            <Label className="text-sm">Transportadora</Label>
             <Input
               type="text"
-              placeholder="Ex: 45821"
-              value={newRecord.pedido}
+              placeholder="Ex: Transportes Silva"
+              value={newRecord.transportadora}
               onChange={(e) =>
-                setNewRecord({ ...newRecord, pedido: e.target.value })
+                setNewRecord({ ...newRecord, transportadora: e.target.value })
               }
               className="h-10 text-sm"
             />
@@ -363,7 +376,8 @@ export default function AdminPanel() {
                   <LcqBadge status={record.statusLcq} />
                 </div>
                 <p className="text-muted-foreground text-xs">
-                  {record.motorista || "N/A"} • {record.placa || "N/A"}
+                  {record.pedido && `NF: ${record.pedido} • `}
+                  {record.placa || "S/Placa"} • {record.transportadora || "S/Transportadora"}
                 </p>
                 <p className="text-muted-foreground text-xs">
                   {record.quantity} kg • {record.operation}
@@ -371,18 +385,18 @@ export default function AdminPanel() {
                 <p className="text-muted-foreground text-xs">
                   {new Date(record.date).toLocaleString("pt-BR")}
                 </p>
-                {record.statusLcq && record.statusLcq !== "Não se aplica" && (
+                {record.statusLcq && (
                   <div className="flex gap-1 pt-1">
                     {LCQ_STATUSES.filter((s) => s !== record.statusLcq).map((status) => (
                       <button
                         key={status}
                         onClick={() => handleQuickLcqUpdate(record.id, status)}
                         className={`text-[10px] font-bold px-2 py-1 rounded border active:scale-95 ${
-                          status === "Liberado LCQ"
+                          status === "Aprovado"
                             ? "border-green-400 text-green-700 bg-green-50"
                             : status === "Aguardando LCQ"
                               ? "border-yellow-400 text-yellow-700 bg-yellow-50"
-                              : "border-gray-300 text-gray-600 bg-gray-50"
+                              : "border-red-400 text-red-700 bg-red-50"
                         }`}
                       >
                         {status}

@@ -6,11 +6,12 @@ import { ptBR } from "date-fns/locale";
 import {
   Clock,
   User,
-  Package,
+  Truck,
   FileText,
   Activity,
   Image as ImageIcon,
   FlaskConical,
+  Package,
 } from "lucide-react";
 import {
   Dialog,
@@ -26,8 +27,10 @@ function LcqBadge({ status }: { status?: string }) {
   let colors = "bg-gray-100 text-gray-600 border-gray-300";
   if (status === "Aguardando LCQ") {
     colors = "bg-yellow-50 text-yellow-700 border-yellow-400";
-  } else if (status === "Liberado LCQ") {
+  } else if (status === "Aprovado") {
     colors = "bg-green-50 text-green-700 border-green-400";
+  } else if (status === "Reprovado") {
+    colors = "bg-red-50 text-red-700 border-red-400";
   }
 
   return (
@@ -73,9 +76,16 @@ export default function HistoricoCategory() {
 
   const handleUpdateLcq = async (id: string, newStatus: string) => {
     try {
-      await updateRecord(id, { statusLcq: newStatus });
+      const updates: Partial<OperationRecord> = { statusLcq: newStatus };
+      if (newStatus === "Aprovado") {
+        updates.lcqApprovalTime = new Date().toLocaleTimeString("pt-BR", {
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+      await updateRecord(id, updates);
       if (selectedRecord && selectedRecord.id === id) {
-        setSelectedRecord({ ...selectedRecord, statusLcq: newStatus });
+        setSelectedRecord({ ...selectedRecord, ...updates });
       }
       toast({
         title: "Status atualizado",
@@ -132,28 +142,36 @@ export default function HistoricoCategory() {
                 )}
 
                 <div className="grid grid-cols-2 gap-2 text-sm text-muted-foreground">
+                  {record.pedido && (
+                    <div className="flex items-center gap-1.5">
+                      <FileText size={14} />
+                      <span className="truncate">NF: {record.pedido}</span>
+                    </div>
+                  )}
+                  {record.placa && (
+                    <div className="flex items-center gap-1.5">
+                      <Truck size={14} />
+                      <span className="truncate">{record.placa}</span>
+                    </div>
+                  )}
+                  {record.transportadora && (
+                    <div className="flex items-center gap-1.5">
+                      <Package size={14} />
+                      <span className="truncate">{record.transportadora}</span>
+                    </div>
+                  )}
                   <div className="flex items-center gap-1.5">
-                    <Activity size={14} />
-                    <span className="truncate">{record.operation}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <User size={14} />
-                    <span className="truncate">{record.user}</span>
-                  </div>
-                  <div className="flex items-center gap-1.5 col-span-2">
                     <Clock size={14} />
                     <span>
-                      {format(date, "dd/MM/yyyy 'às' HH:mm", {
-                        locale: ptBR,
-                      })}
+                      {format(date, "dd/MM 'às' HH:mm", { locale: ptBR })}
                     </span>
                   </div>
                 </div>
 
                 {record.photoUrl && (
-                  <div className="mt-3 flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 w-fit px-2 py-1 rounded">
+                  <div className="mt-2 flex items-center gap-1.5 text-xs font-medium text-blue-600 bg-blue-50 w-fit px-2 py-1 rounded">
                     <ImageIcon size={12} />
-                    Com foto anexa
+                    Com foto
                   </div>
                 )}
               </button>
@@ -166,7 +184,7 @@ export default function HistoricoCategory() {
         open={!!selectedRecord}
         onOpenChange={(open) => !open && setSelectedRecord(null)}
       >
-        <DialogContent className="w-[90vw] max-w-md rounded-3xl p-0 overflow-hidden">
+        <DialogContent className="w-[90vw] max-w-md rounded-3xl p-0 overflow-hidden max-h-[90vh] overflow-y-auto">
           {selectedRecord && (
             <>
               <div className="bg-primary p-6 text-primary-foreground">
@@ -183,31 +201,61 @@ export default function HistoricoCategory() {
               </div>
 
               <div className="p-6 space-y-4">
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-3">
                   <div className="bg-muted/50 p-3 rounded-xl">
-                    <p className="text-xs text-muted-foreground font-medium mb-1">
-                      Quantidade
-                    </p>
-                    <p className="text-xl font-bold text-foreground">
-                      {selectedRecord.quantity}{" "}
-                      <span className="text-sm font-normal">kg</span>
-                    </p>
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Pedido/NF</p>
+                    <p className="text-lg font-bold text-foreground">{selectedRecord.pedido || "—"}</p>
                   </div>
                   <div className="bg-muted/50 p-3 rounded-xl">
-                    <p className="text-xs text-muted-foreground font-medium mb-1">
-                      Operador
-                    </p>
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Placa</p>
+                    <p className="text-lg font-bold text-foreground">{selectedRecord.placa || "—"}</p>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-xl">
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Transportadora</p>
+                    <p className="text-sm font-bold text-foreground">{selectedRecord.transportadora || "—"}</p>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-xl">
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Quantidade</p>
                     <p className="text-lg font-bold text-foreground">
-                      {selectedRecord.user}
+                      {selectedRecord.quantity} <span className="text-sm font-normal">kg</span>
                     </p>
                   </div>
                 </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="bg-muted/50 p-3 rounded-xl">
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Operador</p>
+                    <p className="text-sm font-bold text-foreground">{selectedRecord.user}</p>
+                  </div>
+                  <div className="bg-muted/50 p-3 rounded-xl">
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Operação</p>
+                    <p className="text-sm font-bold text-foreground">{selectedRecord.operation}</p>
+                  </div>
+                </div>
+
+                {selectedRecord.sampleCollectionTime && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-3">
+                    <p className="text-xs text-blue-600 font-medium mb-1 flex items-center gap-1">
+                      <Clock size={12} /> Coleta de Amostra
+                    </p>
+                    <p className="text-sm font-bold text-blue-800">{selectedRecord.sampleCollectionTime}</p>
+                  </div>
+                )}
+
+                {selectedRecord.lcqApprovalTime && (
+                  <div className="bg-green-50 border border-green-200 rounded-xl p-3">
+                    <p className="text-xs text-green-600 font-medium mb-1 flex items-center gap-1">
+                      <Clock size={12} /> Aprovação LCQ
+                    </p>
+                    <p className="text-sm font-bold text-green-800">{selectedRecord.lcqApprovalTime}</p>
+                  </div>
+                )}
 
                 {selectedRecord.statusLcq && (
                   <div className="space-y-2">
                     <p className="text-xs text-muted-foreground font-medium flex items-center gap-1">
                       <FlaskConical size={14} />
-                      Status LCQ
+                      Status LCQ — toque para alterar
                     </p>
                     <div className="grid grid-cols-1 gap-2">
                       {LCQ_STATUSES.map((status) => {
@@ -215,14 +263,11 @@ export default function HistoricoCategory() {
                           "border-border bg-muted/30 text-muted-foreground";
                         if (selectedRecord.statusLcq === status) {
                           if (status === "Aguardando LCQ") {
-                            colors =
-                              "border-yellow-500 bg-yellow-500/10 text-yellow-700";
-                          } else if (status === "Liberado LCQ") {
-                            colors =
-                              "border-green-500 bg-green-500/10 text-green-700";
-                          } else {
-                            colors =
-                              "border-gray-400 bg-gray-100 text-gray-600";
+                            colors = "border-yellow-500 bg-yellow-500/10 text-yellow-700";
+                          } else if (status === "Aprovado") {
+                            colors = "border-green-500 bg-green-500/10 text-green-700";
+                          } else if (status === "Reprovado") {
+                            colors = "border-red-500 bg-red-500/10 text-red-700";
                           }
                         }
 
@@ -230,9 +275,7 @@ export default function HistoricoCategory() {
                           <button
                             key={status}
                             data-testid={`button-update-lcq-${status}`}
-                            onClick={() =>
-                              handleUpdateLcq(selectedRecord.id, status)
-                            }
+                            onClick={() => handleUpdateLcq(selectedRecord.id, status)}
                             className={`w-full text-left p-3 rounded-xl border-2 transition-all font-semibold text-sm flex items-center justify-between ${colors}`}
                           >
                             <span>{status}</span>
@@ -246,69 +289,22 @@ export default function HistoricoCategory() {
                   </div>
                 )}
 
-                <div className="space-y-3 bg-card border rounded-xl p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                      <Activity size={16} />
-                    </div>
-                    <div>
-                      <p className="text-xs text-muted-foreground font-medium">
-                        Operação
-                      </p>
-                      <p className="font-semibold">
-                        {selectedRecord.operation}
-                      </p>
-                    </div>
+                {selectedRecord.observacao && (
+                  <div className="bg-muted/30 border rounded-xl p-4">
+                    <p className="text-xs text-muted-foreground font-medium mb-1">Observação</p>
+                    <p className="text-sm">{selectedRecord.observacao}</p>
                   </div>
-
-                  {selectedRecord.motorista && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                        <User size={16} />
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground font-medium">
-                          Motorista
-                        </p>
-                        <p className="font-semibold">
-                          {selectedRecord.motorista}
-                          {selectedRecord.placa && ` • ${selectedRecord.placa}`}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedRecord.nf && (
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary">
-                        <FileText size={16} />
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground font-medium">
-                          Referência
-                        </p>
-                        <p className="font-semibold">{selectedRecord.nf}</p>
-                      </div>
-                    </div>
-                  )}
-
-                  {selectedRecord.observacao && (
-                    <div className="pt-2 border-t">
-                      <p className="text-xs text-muted-foreground font-medium mb-1">
-                        Observação
-                      </p>
-                      <p className="text-sm">{selectedRecord.observacao}</p>
-                    </div>
-                  )}
-                </div>
+                )}
 
                 {selectedRecord.photoUrl && (
-                  <div className="mt-4 space-y-2">
-                    <p className="text-sm font-medium text-foreground">Foto</p>
+                  <div className="space-y-2">
+                    <p className="text-sm font-medium text-foreground flex items-center gap-1">
+                      <ImageIcon size={14} /> Foto da NF
+                    </p>
                     <div className="rounded-xl overflow-hidden border">
                       <img
                         src={selectedRecord.photoUrl}
-                        alt="Documento"
+                        alt="Nota Fiscal"
                         className="w-full h-auto object-contain bg-muted"
                       />
                     </div>

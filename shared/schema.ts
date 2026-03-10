@@ -16,6 +16,7 @@ export const operations = pgTable("operations", {
   motorista: text("motorista"),
   placa: text("placa"),
   pedido: text("pedido"),
+  transportadora: text("transportadora"),
   product: text("product").notNull(),
   quantity: text("quantity").notNull(),
   nf: text("nf"),
@@ -24,6 +25,9 @@ export const operations = pgTable("operations", {
   observacao: text("observacao"),
   photoUrl: text("photoUrl"),
   statusLcq: text("status_lcq"),
+  sampleCollectionTime: text("sample_collection_time"),
+  lcqApprovalTime: text("lcq_approval_time"),
+  packaging: text("packaging"),
 });
 
 export const insertUserSchema = createInsertSchema(users).pick({
